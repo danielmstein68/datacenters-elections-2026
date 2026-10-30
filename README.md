@@ -1,0 +1,70 @@
+# Data centers and the 2026 vote
+
+Do voters who live near large data centers vote differently in the 2026 midterms? This study is modeled on the wind turbine literature (Stokes 2016; Otteni and Weisskircher 2022). It compares how precincts near data centers shifted from 2022 to 2026 against how precincts farther away shifted.
+
+The design below was fixed before Election Day (Nov 3, 2026). Changes after that date are listed under **Deviations**.
+
+## Design
+
+**Hypotheses.** Voters near data centers punish one of the following:
+
+1. Local incumbents
+2. Statewide incumbents
+3. The Republican Party
+
+Hypotheses 2 and 3 are distinguished by the party of the office holder. If the shift changes sign with the incumbent's party, that supports incumbency. A consistent shift against the GOP supports partisanship.
+
+**Offices.** House, Senate and governor, compared within the same precinct where the races share a ballot. Uncontested House races are dropped. House races in TX and NC are also dropped because their districts were redrawn mid-decade; both states stay in for Senate and governor.
+
+**Treatment.** Data centers of 50 MW or more that are operating, announced or under construction. Projects that went public in 2023 or later are flagged as the AI wave. See *Data center rules* below.
+
+**Distance.** Each precinct is assigned to a distance ring based on the nearest data center: 0–1, 1–2, 2–5, 5–10 and 10–20 miles, compared against precincts more than 20 miles away in the same state. A 20–30 mile ring should show no effect. Distance is measured from the population-weighted center of each precinct.
+
+**Utility-bill test.** This checks whether precincts served by the same electric utility as a large data center shift regardless of distance. It separates a backyard effect from an electric-bill effect.
+
+**Identification.** Difference-in-differences on the precinct-level change in vote from 2022 to 2026. A placebo uses the 2018-to-2022 change: precincts near 2023+ data centers should show no differential shift before those projects existed.
+
+**States and timing.** The precinct analysis covers GA, MI, TX, IA, MN, NE, NC and VA, using results finalized in county canvasses by Nov 21, 2026. The governor-vs-Senate comparison uses GA, MI, TX, IA, MN and NE. A county-level version covers all states. Everything is re-run on certified results.
+
+## Data center rules
+
+Source: FracTracker Alliance's data center tracker, exported Oct 30, 2026 (1,733 sites).
+
+**Size.** A site counts as 50 MW+ when any of these apply, checked in order:
+
+1. Its reported MW is 50 or more. For a range, the low end is used.
+2. FracTracker's size class is Large, Hyperscale or Mega campus.
+3. Its building is at least 267,373 sq ft.
+4. With no square footage listed, its property is at least 19 acres.
+
+The two cutoffs come from a log-log fit of MW on size among sites that report both. For square footage: n = 420, R² = 0.70. For acreage: n = 389, R² = 0.58. The cutoffs are frozen in `src/prep_datacenters.py`. Sites with no size information (197) are excluded from the main analysis and counted as treated in a robustness check.
+
+**Dating.** These rules classify whether a project went public before or after late 2022:
+
+| FracTracker status | Classified as |
+| --- | --- |
+| Proposed, pre-proposal, approved/permitted/under construction, suspended | 2023+ wave |
+| Operating | Pre-wave, unless an expected online year or a dated source is 2023 or later |
+| Expanding | Dated by hand from the expansion announcement (`data/hand/expansion_dates.csv`) |
+| Cancelled | Kept in the file, not treated in the main analysis |
+
+A fixed random sample of 50 large sites in the target states (seed 20261030) is checked by hand against news coverage to measure how often the rule is wrong (`data/hand/spotcheck_sample.csv`).
+
+## Repository layout
+
+```
+data/raw/        FracTracker export and its README, as received
+data/processed/  datacenters_clean.csv, size_rule_fit.txt
+data/hand/       sheets filled in by hand
+src/             scripts
+```
+
+To rebuild the processed files, run `python src/prep_datacenters.py` (requires `pandas` and `numpy`).
+
+## Data citation
+
+Data provided by FracTracker Alliance (2026). Accessed via https://www.fractracker.org/data-centers/. The data are used under FracTracker's terms of service, which are included in `data/raw/fractracker_README_2026-10-30.txt`.
+
+## Deviations
+
+None yet.

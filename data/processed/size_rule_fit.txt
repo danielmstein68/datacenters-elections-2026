@@ -1,0 +1,3 @@
+Size rule check, data file fractracker_datacenters_2026-10-30.csv
+sqft: n=420, R2=0.70, 50 MW at 267,376 (frozen: 267,373)
+acres: n=389, R2=0.58, 50 MW at 19 (frozen: 19)
