@@ -26,6 +26,8 @@ Hypotheses 2 and 3 are distinguished by the party of the office holder. If the s
 
 **Votes not tied to a precinct.** Some counties report early, absentee or provisional ballots as one county-wide total. These are spread across the county's precincts in proportion to each candidate's precinct votes, following VEST. Counts from geographic precincts only are kept for a robustness check.
 
+**Precinct geography.** For GA, MI, TX, IA, MN, NE and VA, 2018 and 2022 precinct results and boundaries come from VEST (Harvard Dataverse). Each precinct is matched to 2020 census blocks by block internal point. Block populations give the population-weighted precinct center and a precinct-to-block-group crosswalk. Precincts with no 2020 residents use a point inside the polygon. Run `python src/baseline_vest.py`.
+
 **North Carolina placebo.** NC had no Senate race in 2018, so its 2018-to-2022 placebo uses the NC Supreme Court races, which are partisan and statewide in both years.
 
 **States and timing.** The precinct analysis covers GA, MI, TX, IA, MN, NE, NC and VA, using results finalized in county canvasses by Nov 21, 2026. The governor-vs-Senate comparison uses GA, MI, TX, IA, MN and NE. A county-level version covers all states. Everything is re-run on certified results.
