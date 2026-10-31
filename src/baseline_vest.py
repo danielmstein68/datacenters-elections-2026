@@ -47,6 +47,11 @@ BLOCK_URL = "https://www2.census.gov/geo/tiger/TIGER2020/TABBLOCK20/tl_2020_{fip
 # Equal-area projection for distances and weighted centers.
 CRS_AREA = "EPSG:5070"
 
+# Dataverse refuses urllib's default User-Agent.
+_opener = urllib.request.build_opener()
+_opener.addheaders = [("User-Agent", "datacenters-elections-2026/1.0")]
+urllib.request.install_opener(_opener)
+
 # G18USSRSMI / S18USSDSMI / G22GOVDWHI / GCON07DSPA (House columns carry no year).
 STATEWIDE = re.compile(r"^([GS])(\d\d)(USS|GOV)([A-Z])([A-Z0-9]{3})$")
 HOUSE = re.compile(r"^([GS])CON(\d\d)([A-Z])([A-Z0-9]{3})$")
@@ -55,21 +60,27 @@ COUNTY_COLS = ["COUNTYFP", "COUNTYFP20", "COUNTYFP10", "CNTYFIPS", "COUNTY", "CN
                "COUNTYNAME", "CTYNAME", "LOCALITY"]
 
 
+# VEST publishes one Dataverse dataset per election year. No 2022 dataset exists there
+# (checked 2026-10-31), so 2022 needs another source.
+VEST_DOI = {2018: "doi:10.7910/DVN/UBKYRU", 2020: "doi:10.7910/DVN/K7760H"}
+
+
 def download_vest(st, year):
-    """Find {st}_{year}.zip in the VEST dataverse and download it once."""
+    """Download {st}_{year}.zip from the VEST dataset for that year, once."""
     name = f"{st.lower()}_{year}.zip"
     path = RAW / name
     if path.exists():
         return path
-    q = urllib.parse.urlencode({"q": f'name:"{name}"', "type": "file",
-                                "subtree": "electionscience", "per_page": 20})
-    with urllib.request.urlopen(f"{DATAVERSE}/search?{q}") as r:
-        items = json.load(r)["data"]["items"]
-    hits = [i for i in items if i["name"].lower() == name]
+    if year not in VEST_DOI:
+        raise FileNotFoundError(f"VEST has no {year} dataset on Dataverse")
+    q = urllib.parse.urlencode({"persistentId": VEST_DOI[year]})
+    with urllib.request.urlopen(f"{DATAVERSE}/datasets/:persistentId/?{q}") as r:
+        files = json.load(r)["data"]["latestVersion"]["files"]
+    hits = [f["dataFile"]["id"] for f in files if f["dataFile"]["filename"].lower() == name]
     if not hits:
-        raise FileNotFoundError(f"{name} not found in the VEST dataverse")
+        raise FileNotFoundError(f"{name} not found in VEST {year}")
     RAW.mkdir(parents=True, exist_ok=True)
-    urllib.request.urlretrieve(f"{DATAVERSE}/access/datafile/{hits[0]['file_id']}", path)
+    urllib.request.urlretrieve(f"{DATAVERSE}/access/datafile/{hits[0]}", path)
     return path
 
 
