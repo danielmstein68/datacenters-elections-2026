@@ -26,7 +26,20 @@ Hypotheses 2 and 3 are distinguished by the party of the office holder. If the s
 
 **Votes not tied to a precinct.** Some counties report early, absentee or provisional ballots as one county-wide total. These are spread across the county's precincts in proportion to each candidate's precinct votes, following VEST. Counts from geographic precincts only are kept for a robustness check.
 
-**Precinct geography.** For GA, MI, TX, IA, MN, NE and VA, 2018 and 2022 precinct results and boundaries come from VEST (Harvard Dataverse). Each precinct is matched to 2020 census blocks by block internal point. Block populations give the population-weighted precinct center and a precinct-to-block-group crosswalk. Precincts with no 2020 residents use a point inside the polygon. Run `python src/baseline_vest.py`.
+**Precinct geography.** For GA, MI, TX, IA, MN, NE and VA, 2018 precinct results and boundaries come from VEST (Harvard Dataverse, `src/baseline_vest.py --years 2018`). VEST's 2018 files carry governor and Senate only, no House. Each precinct is matched to 2020 census blocks by block internal point. Block populations give the population-weighted precinct center and a precinct-to-block-group crosswalk. Precincts with no 2020 residents use a point inside the polygon. 
+
+**2022 precincts (free sources).** VEST's 2022 files are sold by subscription, so 2022 is built from free sources by `src/baseline_2022.py` (decided 2026-10-31). TX uses Texas Legislative Council VTD results and maps (exact keys). MN uses MEDSL results on LCC 2022 precinct maps, MI uses OpenElections results on the state's 2022 precinct map. GA, IA, NE and VA have no free 2022 statewide precinct map found yet, so MEDSL results are matched to 2020 census voting districts. Results name precincts but carry no map key, so names are matched within each county in steps (exact, reordered words, ward dropped, split precincts merged, code, fuzzy); votes left unmatched are spread over the county's matched precincts like county-wide absentee votes. Statewide totals from MEDSL and TLC match the official counts; OpenElections MI is within 0.1%. Votes in a county where nothing matched cannot be placed and drop out (the "lost" share below). Match quality is in `data/processed/s22/match_report.csv`:
+
+| State | Map | Votes matched to a map precinct | Usable? |
+|---|---|---|---|
+| TX | 2022 VTDs | 100% | yes |
+| MN | 2022 precincts | 99.4% | yes |
+| MI | 2022 precincts | 96.2% | yes |
+| GA | 2020 VTDs | 85.7%; 3.9% of votes lost where whole counties failed to match | with care |
+| VA | 2020 VTDs | 62% (93% of votes cast in precincts; the rest is central absentee, spread by county). Only House races in 2022 | with care |
+| NE | 2020 VTDs | 45% | no, needs a 2022 map |
+| IA | 2020 VTDs | 27% | no, needs a 2022 map |
+
 
 **North Carolina placebo.** NC had no Senate race in 2018, so its 2018-to-2022 placebo uses the NC Supreme Court races, which are partisan and statewide in both years.
 
