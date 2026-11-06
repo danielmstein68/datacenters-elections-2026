@@ -13,7 +13,7 @@ Virginia has no placebo office (2018 Senate only, 2022 House only).
 Outcome: change in the Republican share of the two-party vote, 2018 to 2022, in points.
 
 Model (OLS, one row per precinct and office):
-    change = sum_k b_k * [ring_k to nearest 2023+ site] + state-by-office effects (+ controls)
+    change = sum_k b_k * [ring_k to nearest 2023+ site] + county-by-office effects (+ controls)
 Rings 0-1, 1-2, 2-5, 5-10, 10-20, 20-30 mi; precincts more than 30 mi away are the reference.
 Standard errors are clustered by county. Main runs weight by 2022 two-party votes.
 
@@ -22,8 +22,9 @@ because older sites could have moved votes between 2018 and 2022 on their own:
     A  ignore pre-wave sites
     B  add dummies for the ring to the nearest pre-wave site
     C  drop precincts within 20 mi of a pre-wave site
-A fourth run (D) swaps state-by-office for county-by-office effects, so precincts are compared
-only with other precincts in the same county. It is reported as a diagnostic, not the plan.
+Precincts are compared only with other precincts in the same county (decided by Daniel on
+2026-11-06, after state-by-office comparisons failed this placebo with a flat 2-3 point gap in
+every ring, a metro-versus-rural trend). The state-by-office runs are still reported as S.
 
 Outputs: data/processed/placebo/panel.csv, coefficients.csv, ring_means.csv
 """
@@ -115,7 +116,7 @@ def ols_cluster(y, X, w, cl):
     return b, np.sqrt(np.diag(V)), G
 
 
-def fit(p, label, weighted=True, prewave_dummies=False, county_fe=False):
+def fit(p, label, weighted=True, prewave_dummies=False, county_fe=True):
     d = p.copy()
     cols = [f"wave_{r}" for r in RINGS]
     X = pd.DataFrame({f"wave_{r}": (d.ring_wave == r).astype(float) for r in RINGS}, index=d.index)
@@ -148,7 +149,7 @@ def main():
         fit(panel, "B pre-wave ring dummies", prewave_dummies=True),
         fit(panel[far_from_old], "C drop <20 mi of pre-wave"),
         fit(panel, "A unweighted", weighted=False),
-        fit(panel, "D county-by-office effects", county_fe=True),
+        fit(panel, "S state-by-office (failed plan)", county_fe=False),
     ]
     for st in sorted(panel.state.unique()):
         s = panel[panel.state == st]
@@ -162,8 +163,8 @@ def main():
                           "rows": panel.ring_wave.value_counts()}).reindex(RINGS + [REF])
     means.round(3).to_csv(OUT / "ring_means.csv")
 
-    show = coef[coef.spec.str.match(r"[ABCD] (ignore|pre-wave|drop|unweighted|county)")]
-    print("\nCoefficients (points of GOP two-party share, vs precincts >30 mi from a 2023+ site):")
+    show = coef[coef.spec.str.match(r"[ABCS] (ignore|pre-wave|drop|unweighted|state)")]
+    print("\nCoefficients (points of GOP two-party share, vs precincts >30 mi from a 2023+ site, same county):")
     print(show.pivot(index="ring", columns="spec", values="coef").reindex(RINGS).round(2).to_string())
     print("\nStandard errors:")
     print(show.pivot(index="ring", columns="spec", values="se").reindex(RINGS).round(2).to_string())
