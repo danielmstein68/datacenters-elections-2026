@@ -1,4 +1,4 @@
-"""Precinct results and geography for 2018 and 2022 from VEST, for GA, MI, TX, IA, MN, NE and VA.
+"""Precinct results and geography for 2018 and 2022 from VEST, for GA, MI, TX, MN and VA.
 
 VEST (Voting and Election Science Team, Harvard Dataverse) publishes one shapefile per state and
 year with precinct boundaries and wide vote columns such as G18USSRSMI (General 2018, US Senate,
@@ -38,7 +38,8 @@ RAW = ROOT / "data/raw/vest"
 BLOCKS = ROOT / "data/raw/census_blocks"
 OUT = ROOT / "data/processed/vest"
 
-STATES = {"GA": "13", "MI": "26", "TX": "48", "IA": "19", "MN": "27", "NE": "31", "VA": "51"}
+# Iowa and Nebraska were dropped on 2026-11-06 (no usable free 2022 precinct map).
+STATES = {"GA": "13", "MI": "26", "TX": "48", "MN": "27", "VA": "51"}
 YEARS = [2018, 2022]
 
 DATAVERSE = "https://dataverse.harvard.edu/api"

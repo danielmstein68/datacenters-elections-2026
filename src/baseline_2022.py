@@ -1,4 +1,4 @@
-"""2022 precinct results and geography for GA, MI, TX, IA, MN, NE and VA from free sources.
+"""2022 precinct results and geography for GA, MI, TX, MN and VA from free sources.
 
 VEST's 2022 files are sold by subscription (UF Election Lab), so 2022 is built from free
 sources instead (decided 2026-10-31):
@@ -7,7 +7,7 @@ sources instead (decided 2026-10-31):
   TX     Texas Legislative Council VTD returns     TLC 2022 general VTDs (same keys, exact join)
   MN     MEDSL 2022 precinct returns               LCC 2022 general VTDs
   MI     OpenElections 2022 precinct file          Michigan GIS "2022 Voting Precincts"
-  GA, IA, NE, VA
+  GA, VA
          MEDSL 2022 precinct returns               2020 census voting districts (TIGER VTD20)
 
 Outside TX, results carry precinct names but no map keys, so names are matched to map
@@ -52,7 +52,7 @@ OUT = ROOT / "data/processed/s22"
 UA = {"User-Agent": "datacenters-elections-2026/1.0"}
 
 # MEDSL 2022 precinct returns by state, CC0 (doi:10.7910/DVN/UYQIEP), Dataverse file ids.
-MEDSL = {"GA": 10855164, "IA": 10855151, "MN": 10855150, "NE": 10855155, "VA": 10855178}
+MEDSL = {"GA": 10855164, "MN": 10855150, "VA": 10855178}
 TX_VTD = ("https://data.capitol.texas.gov/dataset/4d8298d0-d176-4c19-b174-42837027b73e/"
           "resource/037e1de6-a862-49de-ae31-ae609e214972/download/vtds_22g.zip")
 TX_RES = ("https://data.capitol.texas.gov/dataset/35b16aee-0bb0-4866-b1ec-859f1f044241/"
@@ -65,8 +65,7 @@ VTD20 = "https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/VTD/2020/tl_2020_{f
 COUNTY_LIST = "https://www2.census.gov/geo/docs/reference/codes2020/cou/st{fips}_{st}_cou2020.txt"
 
 MAP_SOURCE = {"TX": "tlc_vtd_2022", "MN": "lcc_vtd_2022", "MI": "mi_precincts_2022",
-              "GA": "census_vtd_2020", "IA": "census_vtd_2020", "NE": "census_vtd_2020",
-              "VA": "census_vtd_2020"}
+              "GA": "census_vtd_2020", "VA": "census_vtd_2020"}
 
 
 def fetch(url, path):
