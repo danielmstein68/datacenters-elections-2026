@@ -1,4 +1,5 @@
 site_id,facility_name,operator_name,state,county,target_state,source_1,expansion_announced,source_url,notes
+FT00029,Goodyear Microsoft Data Center,Microsoft,AZ,Maricopa,True,https://www.levelset.com/property-owners/microsoft-corporation/project-history/,,,
 FT00254,Project Pegasus,"Form8tion (Thor Equities), Google",GA,Troup,True,https://www.form8tion.net/wp-content/uploads/2024/12/Form8tion-LGA1.pdf,,,
 FT00298,Stanton Springs Data Center,Meta,GA,Newton,True,https://plateauexcavation.com/projects/newton-data-center/,,,
 FT00968,Helios Data Center,Galaxy Digital,TX,Dickens,True,https://news.bitcoin.com/solunas-project-kati-1-to-reach-83-mw-with-galaxy-bitcoin-miner-deployment/,,,
@@ -36,7 +37,6 @@ FT01632,NV-9 CYRUSONE,CyrusOne,VA,Loudoun,True,https://loudouncountyvaeg.tylerho
 FT01635,PROLOGIS-EXCHANGE 43461 OLD OX ROAD Data center,PROLOGIS-EXCHANGE 43461 OLD OX ROAD LLC,VA,Loudoun,True,https://reparcelasmt.loudoun.gov/pt/Datalets/Datalet.aspx?UseSearch=no&mode=profileall&pin=124299328000&jur=107&taxyr=2024,,,
 FT01636,PROLOGIS-EXCHANGE 43461 OLD OX ROAD Data center,,VA,Loudoun,True,https://loudouncountyvaeg.tylerhost.net/prod/selfservice#/plan/f6c352b4-2c45-42eb-8aa1-1f4aa98da3b9?tab=attachments,,,
 FT01640,Prologis NOVA 1,Prologis,VA,Loudoun,True,https://dgtlinfra.com/prologis-skybox-data-center-northern-virginia/,,,
-FT00029,Goodyear Microsoft Data Center,Microsoft,AZ,Maricopa,False,https://www.levelset.com/property-owners/microsoft-corporation/project-history/,,,
 FT00094,Walsh Bowers Technology Center: CoreSite,CoreSite,CA,Santa Clara,False,https://www.datacenterdynamics.com/en/news/coresite-acquires-silicon-valley-office-property-zoned-for-data-center-redevelopment/,,,
 FT00462,Riot 1,Riot,KY,McCracken,False,https://www.datacenterdynamics.com/en/news/riot-to-convert-cryptomine-site-in-texas-to-hpc-signs-25mw-lease-with-amd/,,,
 FT00463,Riot 2,Riot,KY,McCracken,False,https://www.datacenterdynamics.com/en/news/riot-to-convert-cryptomine-site-in-texas-to-hpc-signs-25mw-lease-with-amd/,,,
