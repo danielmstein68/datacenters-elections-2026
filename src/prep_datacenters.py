@@ -28,7 +28,8 @@ RAW = ROOT / "data/raw/fractracker_datacenters_2026-10-30.csv"
 OUT = ROOT / "data/processed"
 HAND = ROOT / "data/hand"
 
-TARGET_STATES = ["GA", "MI", "TX", "IA", "MN", "NE", "NC", "VA"]
+# IA and NE dropped, AZ, IN and WI added on 2026-11-06 (see README Deviations).
+TARGET_STATES = ["GA", "MI", "TX", "MN", "NC", "VA", "AZ", "IN", "WI"]
 MW_CUTOFF = 50
 
 # Frozen from the 2026-10-30 fit of log(MW) on log(size) among sites reporting both.

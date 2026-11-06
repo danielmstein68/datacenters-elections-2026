@@ -1,4 +1,4 @@
-"""2022 precinct results and geography for GA, MI, TX, MN and VA from free sources.
+"""2022 precinct results and geography for GA, MI, TX, MN, VA, AZ, IN and WI from free sources.
 
 VEST's 2022 files are sold by subscription (UF Election Lab), so 2022 is built from free
 sources instead (decided 2026-10-31):
@@ -7,6 +7,9 @@ sources instead (decided 2026-10-31):
   TX     Texas Legislative Council VTD returns     TLC 2022 general VTDs (same keys, exact join)
   MN     MEDSL 2022 precinct returns               LCC 2022 general VTDs
   MI     OpenElections 2022 precinct file          Michigan GIS "2022 Voting Precincts"
+  WI     LTSB 2022 wards with results attached  same file (exact join)
+  IN     MEDSL 2022 (national Senate/House files)  IndianaMap 2023 voting districts
+  AZ     MEDSL 2022 precinct returns               Maricopa 2022 and Pima 2024 precincts; 2020 VTDs elsewhere
   GA, VA
          MEDSL 2022 precinct returns               2020 census voting districts (TIGER VTD20)
 
@@ -52,7 +55,19 @@ OUT = ROOT / "data/processed/s22"
 UA = {"User-Agent": "datacenters-elections-2026/1.0"}
 
 # MEDSL 2022 precinct returns by state, CC0 (doi:10.7910/DVN/UYQIEP), Dataverse file ids.
-MEDSL = {"GA": 10855164, "MN": 10855150, "VA": 10855178}
+MEDSL = {"GA": 10855164, "MN": 10855150, "VA": 10855178, "WI": 10855181,
+         "AZ": 14249794}  # AZ: the "local" file, which also holds the federal and state races
+# MEDSL's by-state set has no Indiana file; IN comes from the national Senate and House files.
+MEDSL_NATIONAL = {"senate": 13996913, "house": 13996912}
+MARICOPA_MAP = ("https://services.arcgis.com/ykpntM6e3tHvzKRJ/arcgis/rest/services/"
+                "Maricopa_County_Voting_Precincts_(2022-)/FeatureServer/0/query")
+# Pima's map is its Oct 2024 election polygons, dissolved to voting precincts. Its precinct
+# numbers match 264 of 266 Pima precincts in the 2022 results.
+PIMA_MAP = ("https://services2.arcgis.com/UTBp78iglGpbqp1B/arcgis/rest/services/"
+            "election_polys_20241004_view/FeatureServer/0/query")
+IN_MAP = "https://gisdata.in.gov/server/rest/services/Hosted/Voting_District_Boundaries_2023/FeatureServer/1/query"
+WI_MAP = ("https://services1.arcgis.com/FDsAtKBk8Hy4cAH0/arcgis/rest/services/"
+          "2022_Election_Data_wtih_2022_Wards/FeatureServer/0/query")
 TX_VTD = ("https://data.capitol.texas.gov/dataset/4d8298d0-d176-4c19-b174-42837027b73e/"
           "resource/037e1de6-a862-49de-ae31-ae609e214972/download/vtds_22g.zip")
 TX_RES = ("https://data.capitol.texas.gov/dataset/35b16aee-0bb0-4866-b1ec-859f1f044241/"
@@ -65,7 +80,8 @@ VTD20 = "https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/VTD/2020/tl_2020_{f
 COUNTY_LIST = "https://www2.census.gov/geo/docs/reference/codes2020/cou/st{fips}_{st}_cou2020.txt"
 
 MAP_SOURCE = {"TX": "tlc_vtd_2022", "MN": "lcc_vtd_2022", "MI": "mi_precincts_2022",
-              "GA": "census_vtd_2020", "VA": "census_vtd_2020"}
+              "GA": "census_vtd_2020", "VA": "census_vtd_2020",
+              "AZ": "maricopa_2022+pima_2024+census_vtd_2020", "IN": "indianamap_2023", "WI": "ltsb_wards_2022"}
 
 
 def fetch(url, path):
@@ -202,9 +218,27 @@ def load_tx():
     return vtd[["precinct_id", "county", "name", "geometry"]], r
 
 
+def medsl_national(st):
+    """Pull one state's rows out of MEDSL's national Senate and House files, once."""
+    path = RAW / f"medsl/{st.lower()}.tab"
+    if not path.exists():
+        parts = []
+        for office, fid in MEDSL_NATIONAL.items():
+            big = fetch(f"https://dataverse.harvard.edu/api/access/datafile/{fid}?format=original",
+                        RAW / f"medsl/national_{office}.tab")
+            for ch in pd.read_csv(big, dtype=str, chunksize=500_000):
+                parts.append(ch[ch.state_po == st])
+            big.unlink()
+        pd.concat(parts).to_csv(path, index=False)
+    return path
+
+
 def medsl(st):
-    path = fetch(f"https://dataverse.harvard.edu/api/access/datafile/{MEDSL[st]}?format=original",
-                 RAW / f"medsl/{st.lower()}.tab")
+    if st in MEDSL:
+        path = fetch(f"https://dataverse.harvard.edu/api/access/datafile/{MEDSL[st]}?format=original",
+                     RAW / f"medsl/{st.lower()}.tab")
+    else:
+        path = medsl_national(st)
     d = pd.read_csv(path, dtype=str, low_memory=False)
     d = d[d.office.isin(["US SENATE", "GOVERNOR", "US HOUSE"]) & (d.stage == "GEN")]
     d = d[d.candidate.notna() & ~d.candidate.str.upper().isin([c.upper() for c in NOT_CANDIDATES])]
@@ -242,22 +276,77 @@ def load_vtd20(st):
     return v[["precinct_id", "county", "NAME20", "geometry"]].rename(columns={"NAME20": "name"}), names
 
 
-def load_mi():
-    path = RAW / "mi/mi_precincts_2022.geojson"
+def arcgis_layer(url, path, page=1000):
+    """Download every feature of an ArcGIS feature layer as GeoJSON, once."""
+    path = Path(path)
     if not path.exists():
         feats, off = [], 0
         while True:
             q = urllib.parse.urlencode({"where": "1=1", "outFields": "*", "outSR": 4326, "f": "geojson",
-                                        "resultOffset": off, "resultRecordCount": 1000})
-            req = urllib.request.Request(f"{MI_MAP}?{q}", headers=UA)
+                                        "resultOffset": off, "resultRecordCount": page})
+            req = urllib.request.Request(f"{url}?{q}", headers=UA)
             fs = json.load(urllib.request.urlopen(req, timeout=300))["features"]
             feats += fs
             off += len(fs)
-            if len(fs) < 1000:
+            if len(fs) < page:
                 break
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"type": "FeatureCollection", "features": feats}))
-    v = gpd.read_file(path)
+    return gpd.read_file(path)
+
+
+def load_az():
+    """Maricopa's 2022 precinct map and Pima's 2024 one (together about 77% of AZ votes);
+    2020 census VTDs for the other counties."""
+    m = arcgis_layer(MARICOPA_MAP, RAW / "az/maricopa_precincts_2022.geojson")
+    m["precinct_id"] = "AZ22MC_" + m["BdVal"].astype(str)
+    m["county"] = "04013"
+    m["name"] = m["BdVal"].astype(str).str.zfill(4) + " " + m["BdName"]
+    pm = arcgis_layer(PIMA_MAP, RAW / "az/pima_election_polys_2024.geojson")
+    pm = pm[pm["POLL_PCT_STR"].notna()].dissolve(by="POLL_PCT_STR", as_index=False)
+    pm["precinct_id"] = "AZ24PC_" + pm["POLL_PCT_STR"].astype(str)
+    pm["county"] = "04019"
+    pm["name"] = pm["POLL_PCT_STR"].astype(str)
+    v, names = load_vtd20("AZ")
+    keep = ~v.county.isin(["04013", "04019"])
+    v, names = v[keep], names[~names.county.isin(["04013", "04019"])]
+    cols = ["precinct_id", "county", "name"]
+    precincts = pd.concat([m[cols + ["geometry"]], pm[cols + ["geometry"]].to_crs(m.crs),
+                           v.to_crs(m.crs)], ignore_index=True)
+    names = pd.concat([pm[cols], names])
+    return gpd.GeoDataFrame(precincts, crs=m.crs), pd.concat([m[cols], names]), medsl("AZ")
+
+
+def load_in():
+    v = arcgis_layer(IN_MAP, RAW / "in/in_precincts_2023.geojson")
+    v["precinct_id"] = "IN23_" + v["p23_stfid"].astype(str)
+    v["county"] = "18" + v["county"].astype(str).str.zfill(3)
+    v["name"] = v["p23"]
+    return v[["precinct_id", "county", "name", "geometry"]], medsl("IN")
+
+
+def load_wi():
+    """LTSB 2022 wards with 2022 results already attached (exact keys, like TX)."""
+    v = arcgis_layer(WI_MAP, RAW / "wi/wi_wards_2022.geojson", page=2000)
+    v["precinct_id"] = "WI22_" + v["GEOID"].astype(str)
+    v["county"] = "55" + v["CNTY_FIPS"].astype(str).str.zfill(3)
+    v["name"] = v["LABEL"]
+    rows = []
+    for pre, office in [("GOV", "governor"), ("USS", "senate"), ("USH", "house")]:
+        cols = [c for c in v.columns if c.startswith(pre) and c.endswith("22") and c != f"{pre}TOT22"]
+        long = v[["precinct_id", "county", "CON2021"] + cols].melt(
+            id_vars=["precinct_id", "county", "CON2021"], var_name="candidate", value_name="votes")
+        long["office"] = office
+        long["party"] = long.candidate.str[3:6].map({"DEM": "D", "REP": "R"}).fillna("O")
+        long["district"] = pd.to_numeric(long["CON2021"], errors="coerce") if office == "house" else float("nan")
+        rows.append(long.drop(columns="CON2021"))
+    r = pd.concat(rows)
+    r["votes"] = pd.to_numeric(r["votes"], errors="coerce").fillna(0)
+    return v[["precinct_id", "county", "name", "geometry"]], r
+
+
+def load_mi():
+    v = arcgis_layer(MI_MAP, RAW / "mi/mi_precincts_2022.geojson")
     v["precinct_id"] = "MI22_" + v["PRECINCTID"]
     v["county"] = "26" + v["COUNTYFIPS"].str.zfill(3)
     v["name"] = v["Precinct_Long_Name"]
@@ -285,14 +374,18 @@ def load_mi():
 
 def build(st, blocks):
     names = None
-    if st == "TX":
-        precincts, res = load_tx()
+    if st in ("TX", "WI"):
+        precincts, res = load_tx() if st == "TX" else load_wi()
         res["match_step"] = "key"
     else:
         if st == "MN":
             precincts, res = load_mn()
         elif st == "MI":
             precincts, res = load_mi()
+        elif st == "IN":
+            precincts, res = load_in()
+        elif st == "AZ":
+            precincts, names, res = load_az()
         else:
             precincts, names = load_vtd20(st)
             res = medsl(st)
@@ -305,6 +398,8 @@ def build(st, blocks):
 
     res["contest"] = res["office"].where(res["office"].str.startswith(("governor", "senate")),
                                          "house_" + res["district"].fillna(0).astype(int).astype(str).str.zfill(2))
+    special = res["office"].str.endswith("_special")
+    res.loc[special & ~res["contest"].str.endswith("_special"), "contest"] += "_special"
     res["office"] = res["office"].str.replace("_special", "", regex=False)
     real = res["precinct_id"].notna()
     res["precinct_id"] = res["precinct_id"].fillna("UNMATCHED_" + res["county"].astype(str))
