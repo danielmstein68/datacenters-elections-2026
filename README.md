@@ -44,6 +44,12 @@ Hypotheses 2 and 3 are distinguished by the party of the office holder. If the s
 
 **North Carolina placebo.** NC had no Senate race in 2018, so its 2018-to-2022 placebo uses the NC Supreme Court races, which are partisan and statewide in both years.
 
+**North Carolina geography.** NC results are placed on the State Board of Elections' statewide precinct maps by county and precinct code (`src/baseline_nc_geo.py`): the May 2017 map for 2018 (all 2,706 precincts match) and the Aug 2022 map for 2022 (all but 3 precincts match; their 0.04% of votes are spread over the county). Centers and block-group crosswalks are built the same way as the other states.
+
+**Distance rings (`src/rings.py`).** Each 2018 and 2022 precinct center gets the distance in miles to the nearest large site of any vintage, the nearest 2023+ wave site and the nearest pre-wave site, with sites in every state counted (a site across a state line still counts). Output: `data/processed/rings/`. With the 20–30 mile check ring split out, the comparison group is precincts more than 30 miles away.
+
+**2018-to-2022 placebo (`src/placebo.py`).** 2018 votes are moved onto 2022 precincts through block groups. The outcome is the change in GOP share of the two-party vote for each office on the ballot in both years (governor and/or Senate; NC Supreme Court). VA has no such office and is left out; IN covers only the 39 counties with 2022 precinct results. First run (Nov 6, weighted by 2022 votes, standard errors clustered by county): with state-by-office comparisons, precincts in every ring out to 30 miles from a 2023+ site moved about 2 to 3 points less Republican than precincts more than 30 miles away. The gap is flat across rings, so it looks like metro versus rural trends rather than anything about the sites. Comparing within county shrinks it to 0.4 to 1.0 points, still flat across rings. How to fix the comparison is open; see `data/processed/placebo/coefficients.csv`.
+
 **States and timing.** The precinct analysis covers GA, MI, TX, MN, NC, VA, AZ, IN and WI, using results finalized in county canvasses by Nov 21, 2026. The governor-vs-Senate comparison uses GA, MI, TX and MN (AZ and WI elect a governor in 2026 but no senator). A county-level version covers all states. Everything is re-run on certified results.
 
 ## Data center rules
