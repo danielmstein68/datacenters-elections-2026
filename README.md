@@ -44,6 +44,12 @@ Hypotheses 2 and 3 are distinguished by the party of the office holder. If the s
 
 **North Carolina placebo.** NC had no Senate race in 2018, so its 2018-to-2022 placebo uses the NC Supreme Court races, which are partisan and statewide in both years.
 
+**North Carolina geography.** NC results are placed on the State Board of Elections' statewide precinct maps by county and precinct code (`src/baseline_nc_geo.py`): the May 2017 map for 2018 (all 2,706 precincts match) and the Aug 2022 map for 2022 (all but 3 precincts match; their 0.04% of votes are spread over the county). Centers and block-group crosswalks are built the same way as the other states.
+
+**Distance rings (`src/rings.py`).** Each 2018 and 2022 precinct center gets the distance in miles to the nearest large site of any vintage, the nearest 2023+ wave site and the nearest pre-wave site, with sites in every state counted (a site across a state line still counts). Output: `data/processed/rings/`. With the 20–30 mile check ring split out, the comparison group is precincts more than 30 miles away.
+
+**2018-to-2022 placebo (`src/placebo.py`).** 2018 votes are moved onto 2022 precincts through block groups. The outcome is the change in GOP share of the two-party vote for each office on the ballot in both years (governor and/or Senate; NC Supreme Court). VA has no such office and is left out; IN covers only the 39 counties with 2022 precinct results. Precincts are compared only with precincts in the same county (county-by-office effects), weighted by 2022 two-party votes, with standard errors clustered by county. Result (Nov 6): within 2 miles of a 2023+ site the 2018-to-2022 shift is close to zero (-0.4 points, SE 0.5 to 0.8). From 2 to 30 miles, precincts moved 0.8 to 1.0 points less Republican than precincts more than 30 miles away in the same county (SE 0.3 to 0.45), with no gradient by distance. Handling of pre-wave sites (ignore them, add their rings, or drop precincts within 20 miles of one) barely changes this. Full table: `data/processed/placebo/coefficients.csv`.
+
 **States and timing.** The precinct analysis covers GA, MI, TX, MN, NC, VA, AZ, IN and WI, using results finalized in county canvasses by Nov 21, 2026. The governor-vs-Senate comparison uses GA, MI, TX and MN (AZ and WI elect a governor in 2026 but no senator). A county-level version covers all states. Everything is re-run on certified results.
 
 ## Data center rules
@@ -89,3 +95,4 @@ Data provided by FracTracker Alliance (2026). Accessed via https://www.fractrack
 
 - **2026-11-06: Iowa and Nebraska dropped.** No free 2022 precinct map was found for either state. Matched to 2020 census voting districts, only 27% (IA) and 45% (NE) of 2022 votes found a precinct, too few for a precinct-level comparison. VEST's 2022 maps are paid.
 - **2026-11-06: Arizona, Indiana and Wisconsin added** to replace them. All three certify county results by Nov 21 and have free 2022 precinct data (see *2022 precincts*). The data center file's `target_state` flag was updated to match.
+- **2026-11-06: Within-county comparison.** The planned comparison against precincts more than 20 to 30 miles away in the same state failed the 2018-to-2022 placebo: every ring out to 30 miles moved 2 to 3 points less Republican, a flat gap that tracks metro versus rural trends. Precincts are now compared only with precincts in the same county (county-by-office effects), for the placebo and the 2026 analysis. The state comparison is still reported.
