@@ -24,6 +24,10 @@ Hypotheses 2 and 3 are distinguished by the party of the office holder. If the s
 
 **Identification.** Difference-in-differences on the precinct-level change in vote from 2022 to 2026. A placebo uses the 2018-to-2022 change: precincts near 2023+ data centers should show no differential shift before those projects existed.
 
+**Votes not tied to a precinct.** Some counties report early, absentee or provisional ballots as one county-wide total. These are spread across the county's precincts in proportion to each candidate's precinct votes, following VEST. Counts from geographic precincts only are kept for a robustness check.
+
+**North Carolina placebo.** NC had no Senate race in 2018, so its 2018-to-2022 placebo uses the NC Supreme Court races, which are partisan and statewide in both years.
+
 **States and timing.** The precinct analysis covers GA, MI, TX, IA, MN, NE, NC and VA, using results finalized in county canvasses by Nov 21, 2026. The governor-vs-Senate comparison uses GA, MI, TX, IA, MN and NE. A county-level version covers all states. Everything is re-run on certified results.
 
 ## Data center rules
