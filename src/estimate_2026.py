@@ -121,9 +121,9 @@ def load_state(st, test=False):
 
     rings = pd.read_csv(PROC / f"rings/{st}_2022_rings.csv")
     p = p.merge(rings[["precinct_id", "dist_any", "ring_any", "dist_wave", "ring_wave"]], on="precinct_id")
-    flags = PROC / f"utility/{st}_2022_utility_flags.csv"
-    if flags.exists():
-        p = p.merge(pd.read_csv(flags), on="precinct_id", how="left")
+    load = PROC / f"utility/{st}_2022_utility_load.csv"
+    if load.exists():  # utility-bill exposure; its model is still to be set
+        p = p.merge(pd.read_csv(load), on="precinct_id", how="left")
     print(f"{st.upper()}: {p.precinct_id.nunique():,} precincts, offices {base_office}")
     return p
 
