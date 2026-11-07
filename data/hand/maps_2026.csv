@@ -1,0 +1,10 @@
+state,best_free_2026_map_now,source,status_2026_11_07,plan
+NC,NCSBE statewide precincts 2026-08-24,https://s3.amazonaws.com/dl.ncsbe.gov/ShapeFiles/Precinct/SBE_PRECINCTS_20260824.zip,2026 map posted,join on county + precinct code as for 2022
+IN,IndianaMap Voting District Boundaries 2026,https://gisdata.in.gov/server/rest/services/Hosted/Voting_District_Boundaries_2026/FeatureServer,2026 map posted,name match within county as for 2022
+AZ,Maricopa County Voting Precincts (2026-); Pima 2024; 2020 VTDs elsewhere,https://services.arcgis.com/ykpntM6e3tHvzKRJ/arcgis/rest/services/Maricopa_County_Voting_Precincts_(2026_)/FeatureServer,Maricopa 2026 map posted,as for 2022
+WI,LTSB WI_Municipal_Wards_Current (2025 wards),https://services1.arcgis.com/FDsAtKBk8Hy4cAH0/arcgis/rest/services/WI_Municipal_Wards_Current/FeatureServer,current wards posted; LTSB 2026 results-on-wards file comes later,match reporting units to wards
+MI,MI state GIS 2024 Voting Precincts (layer 9),https://gisagocss.state.mi.us/arcgis/rest/services/OpenData/boundaries/MapServer/9,2026 layer not posted yet,use 2024 map; recheck for 2026 layer
+MN,LCC vtd2024general,https://gis.lcc.mn.gov/data/shape/vtd2024general.zip,2026 file not posted yet,use 2024 map; recheck for vtd2026general
+TX,TLC VTDs_24PG,https://data.capitol.texas.gov/dataset/vtds,2026 VTDs not posted yet (usually months after),use 2024 VTDs; county results keyed by precinct number
+GA,2020 census VTDs,https://www2.census.gov/geo/tiger/TIGER2020PL/,no free statewide 2026 map found,name match as for 2022
+VA,2020 census VTDs,https://www2.census.gov/geo/tiger/TIGER2020PL/,no free statewide 2026 map found,name match as for 2022
