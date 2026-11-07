@@ -125,6 +125,20 @@ def dating_rule(df):
     return df
 
 
+def apply_expansion_dates(df):
+    """Date expanding sites from the hand-filled sheet (2023+ if the expansion went public in 2023 or later)."""
+    path = HAND / "expansion_dates.csv"
+    if not path.exists():
+        return df
+    hand = pd.read_csv(path, dtype=str).dropna(subset=["expansion_announced"]).set_index("site_id")
+    year = pd.to_numeric(hand.expansion_announced.str[:4], errors="coerce")
+    m = df["site_id"].isin(year.dropna().index) & df["wave"].eq("needs_hand_date")
+    yr = df.loc[m, "site_id"].map(year)
+    df.loc[m, "wave"] = yr.ge(2023).map({True: "2023+", False: "pre-wave"})
+    df.loc[m, "wave_basis"] = "hand_expansion_date"
+    return df
+
+
 def main():
     raw = pd.read_csv(RAW, dtype=str)
     df = pd.DataFrame(
@@ -154,6 +168,7 @@ def main():
 
     df = size_rule(df)
     df = dating_rule(df)
+    df = apply_expansion_dates(df)
 
     # Main-analysis treatment: large, not cancelled, dated. Expansions join once hand-dated.
     df["treated_main"] = df["mw50_plus"].fillna(False) & df["wave"].isin(["2023+", "pre-wave"])
@@ -173,15 +188,17 @@ def main():
     exp = big[big["wave"].eq("needs_hand_date")]
     exp_cols = ["site_id", "facility_name", "operator_name", "state", "county", "target_state", "source_1"]
     hand_exp = exp[exp_cols].assign(expansion_announced="", source_url="", notes="")
-    hand_exp.sort_values(["target_state", "state"], ascending=[False, True]).to_csv(
-        HAND / "expansion_dates.csv", index=False
-    )
+    if not (HAND / "expansion_dates.csv").exists():  # never overwrite hand-filled sheets
+        hand_exp.sort_values(["target_state", "state"], ascending=[False, True]).to_csv(
+            HAND / "expansion_dates.csv", index=False
+        )
 
     pool = big[big["target_state"] & big["wave"].isin(["2023+", "pre-wave"])]
     sample = pool.sample(n=min(SPOTCHECK_N, len(pool)), random_state=SEED)
-    sample[exp_cols + ["status", "wave", "wave_basis"]].assign(
-        first_public_date="", source_url="", rule_correct="", notes=""
-    ).to_csv(HAND / "spotcheck_sample.csv", index=False)
+    if not (HAND / "spotcheck_sample.csv").exists():
+        sample[exp_cols + ["status", "wave", "wave_basis"]].assign(
+            first_public_date="", source_url="", rule_correct="", notes=""
+        ).to_csv(HAND / "spotcheck_sample.csv", index=False)
 
     tgt = df[df["target_state"]]
     print("\n".join(lines))

@@ -76,7 +76,7 @@ The two cutoffs come from a log-log fit of MW on size among sites that report bo
 | Expanding | Dated by hand from the expansion announcement (`data/hand/expansion_dates.csv`) |
 | Cancelled | Kept in the file, not treated in the main analysis |
 
-A fixed random sample of 50 large sites in the target states (seed 20261030) is checked by hand against news coverage to measure how often the rule is wrong (`data/hand/spotcheck_sample.csv`).
+A fixed random sample of 50 large sites in the target states (seed 20261030) is checked by hand against news coverage to measure how often the rule is wrong (`data/hand/spotcheck_sample.csv`). Result (Nov 7, research pass, 41 of 50 dated so far): the rule was wrong for 6 of 41 (15%), 5 of 37 labeled 2023+ (mostly projects public in 2020-21) and 1 of 4 labeled pre-wave. Expanding sites are dated from `data/hand/expansion_dates.csv` (35 of 52 dated; 22 of the 38 large target-state sites, 18 of them 2023+); undated expansions stay out of the main analysis.
 
 ## Repository layout
 
