@@ -1,0 +1,4 @@
+version,coef_per_log_unit,se,t,effect_of_1sd,rows,clusters,usable_sd_of_exposure
+state (+2018 vote),0.0184,0.322,0.0572,0.0111,40733,780,0.43
+county,-0.4183,0.1961,-2.1333,-0.2529,40733,780,0.176
+border pairs (<3 mi),-0.8882,0.3808,-2.3322,-0.5924,3973,185,0.3095
