@@ -9,3 +9,10 @@ data/raw/nc/
 data/raw/s22/
 data/raw/utility/
 data/raw/vest/
+data/raw/s26/
+# unofficial 2026 results stay out of git until certified
+data/processed/s26/*_results.csv
+data/processed/s26/*_precincts.gpkg
+data/processed/nc/nc_2026_results.csv
+data/raw/census/
+data/processed/results_2026/early_unofficial/

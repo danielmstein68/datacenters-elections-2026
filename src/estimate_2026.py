@@ -160,11 +160,21 @@ def fit_utility(d, outcome, ratio_col, label):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--test", action="store_true", help="use 2022 results as 2026 (all effects should be 0)")
+    ap.add_argument("--dry", action="store_true",
+                    help="check the pipeline runs on whatever 2026 files exist; print counts only, no estimates")
     args = ap.parse_args()
     panel = [p for st in STATES if (p := load_state(st, args.test)) is not None]
     if not panel:
         return
     panel = pd.concat(panel, ignore_index=True)
+    if args.dry:
+        print(panel.groupby(["state", "office"]).agg(precincts=("precinct_id", "nunique"),
+                                                     baseline=("baseline_office", "first"),
+                                                     missing_ring=("ring_any", lambda x: x.isna().sum()),
+                                                     missing_utility=("dc_load_ratio_all", lambda x: x.isna().sum()),
+                                                     missing_incparty=("inc_party", lambda x: x.isna().sum())).to_string())
+        print(f"votes 2026 / 2022 two-party, overall: {panel.tp_26.sum() / panel.tp_22.sum():.3f}")
+        return
     specs = []
     for outcome in ("gop", "incparty"):
         specs.append(fit(panel, outcome, "ring_any", "all offices"))
