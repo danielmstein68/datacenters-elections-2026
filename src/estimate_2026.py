@@ -142,6 +142,21 @@ def fit(d, outcome, ring_col, label):
     return out
 
 
+def fit_utility(d, outcome, ratio_col, label):
+    """Utility-bill test (placebo-tested 2026-11-08): log(1 + data center load / utility load),
+    compared within state and office, with ring dummies and the 2022 GOP share and its square."""
+    d = d[d[outcome].notna() & d[ratio_col].notna()]
+    X = pd.DataFrame({"exposure": np.log1p(d[ratio_col])}, index=d.index)
+    for r in RINGS:
+        X[f"ring_{r}"] = (d.ring_any == r).astype(float)
+    X["g22"], X["g22sq"] = d.gop_22, d.gop_22 ** 2 / 100
+    X = pd.concat([X, pd.get_dummies(d.state + ":" + d.office, dtype=float)], axis=1)
+    b, se, G = ols_cluster(d[outcome].to_numpy(float), X.to_numpy(float), d.tp_22.to_numpy(float),
+                           d.county.to_numpy())
+    return pd.DataFrame([{"spec": label, "outcome": outcome, "ring": "utility exposure (per log unit)",
+                          "coef": b[0], "se": se[0], "n_rows": len(d), "n_total": len(d), "clusters": G}])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--test", action="store_true", help="use 2022 results as 2026 (all effects should be 0)")
@@ -156,6 +171,9 @@ def main():
         specs.append(fit(panel, outcome, "ring_wave", "all offices, rings to 2023+ sites"))
         for o in sorted(panel.office.unique()):
             specs.append(fit(panel[panel.office == o], outcome, "ring_any", o))
+        if "dc_load_ratio_all" in panel:
+            specs.append(fit_utility(panel, outcome, "dc_load_ratio_all", "utility bill, all large sites"))
+            specs.append(fit_utility(panel, outcome, "dc_load_ratio_wave", "utility bill, 2023+ sites"))
     coef = pd.concat(specs, ignore_index=True)
     out = OUT / ("test" if args.test else "")
     out.mkdir(parents=True, exist_ok=True)
