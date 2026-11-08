@@ -372,9 +372,16 @@ def load_mi():
 
 # ---------- build ----------
 
-def build(st, blocks):
+def build(st, blocks, year=2022, res=None, out=None):
+    """year/res/out let 2026 results reuse the same name matching on the 2020 VTD maps
+    (src/results_2026_names.py)."""
+    out = out or OUT
     names = None
-    if st in ("TX", "WI"):
+    if res is not None:
+        precincts, names = load_vtd20(st)
+        units = match_names(res[["county", "name"]].drop_duplicates(), names)
+        res = res.merge(units, on=["county", "name"], how="left")
+    elif st in ("TX", "WI"):
         precincts, res = load_tx() if st == "TX" else load_wi()
         res["match_step"] = "key"
     else:
@@ -419,7 +426,7 @@ def build(st, blocks):
     print(st, report)
 
     long.insert(0, "state", st)
-    long.insert(0, "year", 2022)
+    long.insert(0, "year", year)
     long["district"] = long["district"].astype("Int64")
     long["votes_allocated"] = long["votes_allocated"].round(2)
     results = long.rename(columns={"votes": "votes_real"})[
@@ -427,11 +434,12 @@ def build(st, blocks):
          "candidate_code", "party", "votes_real", "votes_allocated"]]
 
     hit = match_blocks(precincts, blocks)
-    OUT.mkdir(parents=True, exist_ok=True)
-    precincts.to_file(OUT / f"{st.lower()}_2022_precincts.gpkg", driver="GPKG")
-    results.to_csv(OUT / f"{st.lower()}_2022_results.csv", index=False)
-    centers(precincts, hit).to_csv(OUT / f"{st.lower()}_2022_centers.csv", index=False)
-    bg_crosswalk(hit).to_csv(OUT / f"{st.lower()}_2022_bg_xwalk.csv", index=False)
+    out.mkdir(parents=True, exist_ok=True)
+    pre = out / f"{st.lower()}_{year}"
+    precincts.to_file(f"{pre}_precincts.gpkg", driver="GPKG")
+    results.to_csv(f"{pre}_results.csv", index=False)
+    centers(precincts, hit).to_csv(f"{pre}_centers.csv", index=False)
+    bg_crosswalk(hit).to_csv(f"{pre}_bg_xwalk.csv", index=False)
     print(results.groupby(["office", "party"]).votes_allocated.sum().round(0).to_string())
     return report
 
