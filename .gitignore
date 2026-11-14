@@ -16,3 +16,4 @@ data/processed/s26/*_precincts.gpkg
 data/processed/nc/nc_2026_results.csv
 data/raw/census/
 data/processed/results_2026/early_unofficial/
+data/processed/results_2026/unofficial_*/
