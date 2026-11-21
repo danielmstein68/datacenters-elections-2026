@@ -13,7 +13,7 @@ for drop in [None] + sorted(panel.state.unique()):
     rows.append(e.fit_utility(d, "gop", "dc_load_ratio_wave", lab))
     rows.append(e.fit_utility(d, "incparty", "dc_load_ratio_wave", lab))
 c = pd.concat(rows)
-c.to_csv(e.OUT / "unofficial_20261114/leave_one_out.csv", index=False)
+c.to_csv(e.OUT / "unofficial_20261121/leave_one_out.csv", index=False)
 r = c[c.outcome == "gop"].pivot_table(index="spec", columns="ring", values="coef")
 s = c[c.outcome == "gop"].pivot_table(index="spec", columns="ring", values="se")
 print(r.round(2).to_string()); print(s.round(2).to_string())
